@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>USWAG · Phase 3</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <script src="theme.js"></script>
+  </head>
+<body data-prev="phase2-modeling.html" data-next="phase4-implementation.html">
+  <div class="hwrap">
+    <header class="hdr">
+      <a href="phase1-proposal.html"><img src="uswag.png" alt="USWAG logo"></a>
+      <div class="hc">
+        <h1>U•S•W•A•G</h1>
+        <p>Unified System for Work and Growth</p>
+      </div>
+      <a href="phase1-proposal.html"><img src="im1.png" alt="IM1 logo"></a>
+    </header>
+    <nav>
+      <a href="phase1-proposal.html"><b>1</b>Proposal</a><a href="phase2-modeling.html"><b>2</b>Modeling</a><a href="phase3-normalization.html" class="on"><b>3</b>Normalization</a><a href="phase4-implementation.html"><b>4</b>Implementation</a><a href="phase5-deliverables.html"><b>5</b>Deliverables</a>
+      <button id="presentBtn" type="button">&#9654; Present</button>
+    </nav>
+  </div>
+
+  <main>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">3 · Normalization</div>
+        <div class="pt"><span class="n">3</span><h2>Normalization</h2></div>
+        <p class="lead">Formal normalization: from one unnormalized form to BCNF.</p>
+        <div class="div">Dependencies and Key</div>
+        <div class="card"><ul class="b"><li>sale_id → seller, buyer, date, status.</li><li>seller_id → name, zone; product_id → name, category, price; category_id → category_name.</li><li>(sale_id, product_id) → quantity_sold, unit_price_at_sale.</li><li>The candidate key of the unnormalized form is {sale_id, product_id}.</li></ul></div>
+      </section>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">3 · Normalization</div>
+        <div class="div">Decomposition Process</div>
+        <div class="decomp-flow">
+          <div class="decomp-step">
+            <h4>UNF (Unnormalized Form) <span class="decomp-chevron">▸</span></h4>
+            <div class="desc">A sale form with repeating groups of products before any normalization splits are applied.</div>
+          </div>
+          
+          <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
+          <div class="decomp-step">
+            <h4>1NF (First Normal Form) <span class="decomp-chevron">▸</span></h4>
+            <div class="desc">Ensures atomic values and one row per sale and product combination.</div>
+          </div>
+          
+          <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
+          <div class="decomp-step">
+            <h4>2NF (Second Normal Form) <span class="decomp-chevron">▸</span></h4>
+            <div class="desc">Removes partial dependencies by splitting into Sales, Products, and Sale_Details tables.</div>
+          </div>
+          
+          <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
+          <div class="decomp-step">
+            <h4>3NF (Third Normal Form) <span class="decomp-chevron">▸</span></h4>
+            <div class="desc">Removes transitive dependencies by isolating Sellers, Accounts, and Categories.</div>
+          </div>
+          
+          <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
+          <div class="decomp-step">
+            <h4>BCNF (Boyce-Codd Normal Form) <span class="decomp-chevron">▸</span></h4>
+            <div class="desc">Verifies that every determinant is a superkey across all 12 tables.</div>
+          </div>
+        </div>
+      </section>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">3 · Normalization</div>
+        <div class="div">Proofs</div>
+        <div class="card"><ul class="b"><li>Lossless: each split joins on the key of one side (Heath’s theorem).</li><li>Dependency-preserving: every dependency sits inside one final table.</li><li>unit_price_at_sale is an intended price snapshot that depends on the sale line, so it is not a violation.</li></ul></div>
+      </section>
+    <div class="nxt">
+      <a class="btn alt" href="phase2-modeling.html">&#8249; Modeling</a>
+      <a class="btn alt" href="phase4-implementation.html">Implementation &#8250;</a>
+    </div>
+  </main>
+
+  <footer>© 2026 Bryan Jay Lumabas and Claire Pillo</footer>
+
+  <div class="modal" id="modal">
+    <div class="mbar">
+      <span class="t" id="mt"></span>
+      <button id="mdl" type="button">Download</button>
+      <button id="mpr" type="button">Print</button>
+      <button id="mx" type="button">Close &#10005;</button>
+    </div>
+    <div class="mbody" id="mb"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

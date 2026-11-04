@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>USWAG · Phase 1</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+  </head>
+<body data-prev="" data-next="phase2-modeling.html">
+  <div class="hwrap">
+    <header class="hdr">
+      <a href="phase1-proposal.html"><img src="uswag.png" alt="USWAG logo"></a>
+      <div class="hc">
+        <h1>U•S•W•A•G</h1>
+        <p>Unified System for Work and Growth</p>
+      </div>
+      <a href="phase1-proposal.html"><img src="im1.png" alt="IM1 logo"></a>
+    </header>
+    <nav>
+      <a href="phase1-proposal.html" class="on"><b>1</b>Proposal</a><a href="phase2-modeling.html"><b>2</b>Modeling</a><a href="phase3-normalization.html"><b>3</b>Normalization</a><a href="phase4-implementation.html"><b>4</b>Implementation</a><a href="phase5-deliverables.html"><b>5</b>Deliverables</a>
+      <button id="presentBtn" type="button">&#9654; Present</button>
+    </nav>
+  </div>
+
+  <main>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">1 · Proposal</div>
+        <div class="pt"><span class="n">1</span><h2>Proposal</h2></div>
+        <p class="lead">Project presentation: the problem, the solution and the objectives.</p>
+        <div class="div">Project</div>
+        <div class="card"><dl class="kv"><dt>Title</dt><dd>USWAG: Unified System for Work and Growth</dd><dt>Proponents</dt><dd>Bryan Jay Lumabas and Claire Pillo</dd><dt>Client</dt><dd>Sustainable Livelihood Program (SLPA)</dd></dl></div>
+      </section>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">1 · Proposal</div>
+        <div class="div">The Problem</div>
+        <div class="card"><ul class="b"><li>Producers keep stock, sales and costs in notebooks, so mistakes stay hidden until money runs short.</li><li>Stock and capital drift apart because nothing checks them.</li><li>There is no proof of payment, audit trail or cash-flow view for SLP admins.</li><li>Rural signal is weak, so sales must be recordable offline.</li></ul></div>
+      </section>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">1 · Proposal</div>
+        <div class="div">The Solution</div>
+        <div class="card"><ul class="b"><li>One normalized database (12 tables, BCNF) is the single source of truth.</li><li>Triggers and procedures enforce the rules, so the data protects itself.</li><li>Offline sales sync without duplicates, and every paid sale gets a JSON receipt.</li><li>Verified inventory and an append-only capital ledger give a full audit trail.</li></ul></div>
+      </section>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">1 · Proposal</div>
+        <div class="div">Objective and Why It Matters</div>
+        <div class="card"><ul class="b"><li>Objective: design and prove a rule-enforcing database through modeling, normalization, DDL, triggers, queries and indexing.</li><li>A spreadsheet cannot refuse a bad entry, but the database rejects negative stock, edited balances and empty paid sales.</li><li>Every peso must be traceable, and any interface can change while the database stays reliable.</li></ul></div>
+      </section>
+    <div class="nxt">
+      <button class="sw" id="themeSwitch" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><span class="trk"><span class="knob"></span></span>Dark mode</button>
+      <a class="btn" href="phase2-modeling.html">Modeling &#8250;</a>
+    </div>
+  </main>
+
+  <footer>© 2026 Bryan Jay Lumabas and Claire Pillo</footer>
+
+  <div class="modal" id="modal">
+    <div class="mbar">
+      <span class="t" id="mt"></span>
+      <button id="mdl" type="button">Download</button>
+      <button id="mpr" type="button">Print</button>
+      <button id="mx" type="button">Close &#10005;</button>
+    </div>
+    <div class="mbody" id="mb"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

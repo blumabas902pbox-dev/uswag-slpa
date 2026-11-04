@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>USWAG · Phase 4</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+  </head>
+<body data-prev="phase3-normalization.html" data-next="phase5-deliverables.html">
+  <div class="hwrap">
+    <header class="hdr">
+      <a href="phase1-proposal.html"><img src="uswag.png" alt="USWAG logo"></a>
+      <div class="hc">
+        <h1>U•S•W•A•G</h1>
+        <p>Unified System for Work and Growth</p>
+      </div>
+      <a href="phase1-proposal.html"><img src="im1.png" alt="IM1 logo"></a>
+    </header>
+    <nav>
+      <a href="phase1-proposal.html"><b>1</b>Proposal</a><a href="phase2-modeling.html"><b>2</b>Modeling</a><a href="phase3-normalization.html"><b>3</b>Normalization</a><a href="phase4-implementation.html" class="on"><b>4</b>Implementation</a><a href="phase5-deliverables.html"><b>5</b>Deliverables</a>
+      <button id="presentBtn" type="button">&#9654; Present</button>
+    </nav>
+  </div>
+
+  <main>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">4 · Implementation</div>
+        <div class="pt"><span class="n">4</span><h2>Implementation</h2></div>
+        <p class="lead">Physical schema: executable SQL that enforces integrity.</p>
+        <div class="div">Database Structure Gallery</div>
+        <div class="pills" id="tabs"></div>
+        
+        <div class="gal">
+          <button class="arr" id="gp" type="button" aria-label="Previous">&#8249;</button>
+          <div class="view"><div class="track" id="trk"></div></div>
+          <button class="arr" id="gn" type="button" aria-label="Next">&#8250;</button>
+        </div>
+        <div class="cnt" id="cnt"></div>
+      </section>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">4 · Implementation</div>
+        <div class="div">System Core Features</div>
+        <div class="card"><ul class="b"><li>Offline-first client UUID synchronization preventing duplicate entries in low-signal rural areas.</li><li>Secured credentials, hashed API tokens, and multi-tier role-based account authorization.</li><li>Automated inventory triggers and append-only capital ledger maintaining absolute financial accuracy.</li></ul></div>
+      </section>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">4 · Implementation</div>
+        <div class="div">Strengths & Weaknesses Assessment</div>
+        
+        <div class="card">
+          <table class="sw-table">
+            <thead>
+              <tr><th>Strengths</th><th>Weaknesses/Trade-offs</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>• 0 error script import: 12 tables, 9 views, 18 procedures, 26 triggers.<br>• Automated stock and capital ledger updates.<br>• Idempotent offline sync & JSON receipts.</td>
+                <td>• Fixed direct balance updates by restricting changes to stored procedures.<br>• Open: Unfilled seller names default to usernames until updated.<br>• Trade-off: 26 triggers add minor write overhead.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">4 · Implementation</div>
+        <div class="div">Performance</div>
+        <div class="card"><ul class="b"><li>Query: cash flow per seller, joined to sale lines.</li><li>Before: a full scan of 100,000 rows took 146 ms.</li><li>After idx_sales_seller_status and idx_saledetails_sale: 250 index probes took 2.5 ms, about 58 times faster.</li></ul></div>
+      </section>
+    <div class="nxt">
+      <a class="btn alt" href="phase3-normalization.html">&#8249; Normalization</a>
+      <a class="btn alt" href="phase5-deliverables.html">Deliverables &#8250;</a>
+    </div>
+  </main>
+
+  <footer>© 2026 Bryan Jay Lumabas and Claire Pillo</footer>
+
+  <div class="modal" id="modal">
+    <div class="mbar">
+      <span class="t" id="mt"></span>
+      <button id="mdl" type="button">Download</button>
+      <button id="mpr" type="button">Print</button>
+      <button id="mx" type="button">Close &#10005;</button>
+    </div>
+    <div class="mbody" id="mb"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>USWAG · Phase 2</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+  </head>
+<body data-prev="phase1-proposal.html" data-next="phase3-normalization.html">
+  <div class="hwrap">
+    <header class="hdr">
+      <a href="phase1-proposal.html"><img src="uswag.png" alt="USWAG logo"></a>
+      <div class="hc">
+        <h1>U•S•W•A•G</h1>
+        <p>Unified System for Work and Growth</p>
+      </div>
+      <a href="phase1-proposal.html"><img src="im1.png" alt="IM1 logo"></a>
+    </header>
+    <nav>
+      <a href="phase1-proposal.html"><b>1</b>Proposal</a><a href="phase2-modeling.html" class="on"><b>2</b>Modeling</a><a href="phase3-normalization.html"><b>3</b>Normalization</a><a href="phase4-implementation.html"><b>4</b>Implementation</a><a href="phase5-deliverables.html"><b>5</b>Deliverables</a>
+      <button id="presentBtn" type="button">&#9654; Present</button>
+    </nav>
+  </div>
+
+  <main>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">2 · Modeling</div>
+        <div class="pt"><span class="n">2</span><h2>Modeling</h2></div>
+        <p class="lead">Conceptual model: ERD with 1:1, 1:M, and M:N cardinalities in Crow’s Foot notation.</p>
+        <div class="div">Entities and Cardinality</div>
+        <div class="card"><ul class="b"><li>Task: model the domain with explicit 1:1, 1:M, and M:N cardinalities.</li><li>Result: 12 entities and 16 relationships, generated from the live database.</li><li>Strong entities: Accounts, Sellers, Categories, Products and Sales.</li><li>Weak entities: Sale_Details (identified by Sales) and Capital_Ledger (identified by Sellers).</li><li>Sale_Details acts as an associative entity resolving the M:N relationship between Sales and Products.</li><li>Optional links (0..1): the buyer on a sale and the verifier on an inventory entry.</li></ul></div>
+      </section>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">2 · Modeling</div>
+        
+        <div class="div">Business Rules</div>
+        <div class="card"><ul class="b"><li>Stock changes only through admin-verified inventory entries.</li><li>A paid sale credits capital once and issues one receipt, and an empty sale cannot be paid.</li><li>Expenses debit capital, and every money movement is written to the ledger.</li><li>Offline sales carry a client UUID, so syncing never creates duplicates.</li></ul></div>
+      </section>
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">2 · Modeling</div>
+        
+        <div class="div">Entity-Relationship Diagram</div>
+        <div class="erdbox" title="Click to enlarge">
+          <pre class="mermaid" id="erd">
+erDiagram
+    Accounts {
+        int account_id PK
+        enum role
+        varchar(50) username UK
+        varchar(100) email UK
+        varchar(15) contact_number UK
+        varchar(150) address
+        varchar(255) password_hash
+        char(64) api_token_hash UK
+        datetime api_token_expires_at
+        tinyint failed_login_attempts
+        datetime locked_until
+        datetime last_login_at
+        tinyint is_active
+        datetime created_at
+    }
+            
+    Capital_Ledger {
+        bigint ledger_id PK
+        int seller_id FK
+        varchar(30) entry_type
+        decimal amount
+        decimal balance_after
+        int reference_id
+        varchar(150) note
+        datetime created_at
+    }
+            
+    Capital_Management {
+        int capital_id PK
+        int seller_id FK
+        decimal initial_capital
+        decimal current_balance
+        datetime last_updated
+    }
+            
+    Categories {
+        int category_id PK
+        varchar(50) category_name UK
+    }
+            
+    Contact_Messages {
+        int message_id PK
+        varchar(100) sender_name
+        varchar(100) sender_email
+        varchar(15) contact_number
+        varchar(50) subject
+        text message_body
+        enum status
+        char(32) public_token
+        char(64) ip_hash
+        tinyint sms_sent
+        tinyint email_sent
+        int reviewed_by_account_id FK
+        datetime reviewed_at
+        datetime created_at
+    }
+            
+    Expenses {
+        int expense_id PK
+        int seller_id FK
+        enum expense_category
+        decimal amount
+        datetime expense_date
+        varchar(150) description
+    }
+            
+    Inventory_Transactions {
+        int transaction_id PK
+        int product_id FK
+        int sale_detail_id FK
+        enum transaction_type
+        enum verification_status
+        decimal quantity
+        datetime transaction_date
+        varchar(150) remarks
+        int verified_by_account_id FK
+        datetime verified_at
+    }
+            
+    Products {
+        int product_id PK
+        int seller_id FK
+        int category_id FK
+        varchar(100) product_name
+        varchar(20) unit_of_measure
+        decimal unit_price
+        decimal current_stock
+        decimal reorder_level
+        tinyint is_active
+    }
+            
+    Receipts {
+        bigint receipt_id PK
+        int sale_id FK
+        int account_id FK
+        varchar(50) receipt_number UK
+        enum receipt_type
+        longtext receipt_data
+        datetime issued_at
+        tinyint is_downloaded
+        enum sync_status
+    }
+            
+    Sales {
+        int sale_id PK
+        int seller_id FK
+        int buyer_account_id FK
+        datetime sale_date
+        enum status
+        enum sync_status
+        char(36) client_id
+    }
+            
+    Sale_Details {
+        int sale_detail_id PK
+        int sale_id FK
+        int product_id FK
+        decimal quantity_sold
+        decimal unit_price_at_sale
+        decimal line_total
+    }
+            
+    Sellers {
+        int seller_id PK
+        int account_id FK
+        varchar(50) first_name
+        varchar(50) last_name
+        varchar(15) contact_number UK
+        varchar(50) barangay_zone
+        varchar(100) slp_association
+        date join_date
+        tinyint is_active
+    }
+            
+    Accounts |o..o{ Contact_Messages : &quot;1:M reviews&quot;
+    Accounts |o..o{ Inventory_Transactions : &quot;1:M verifies&quot;
+    Accounts |o..o{ Receipts : &quot;1:M issued to&quot;
+    Accounts |o..o{ Sales : &quot;1:M buys&quot;
+    Accounts |o..o| Sellers : &quot;1:1 is profile of&quot;
+    Categories ||..o{ Products : &quot;1:M groups&quot;
+    Products ||..o{ Inventory_Transactions : &quot;1:M stock moves&quot;
+    Products }o..o{ Sales : &quot;M:N sold as (via Sale_Details)&quot;
+    Sales ||..o| Receipts : &quot;1:1 proves&quot;
+    Sales ||--o{ Sale_Details : &quot;1:M lists&quot;
+    Sale_Details |o..o{ Inventory_Transactions : &quot;1:M caused by&quot;
+    Sellers ||--o{ Capital_Ledger : &quot;1:M logs&quot;
+    Sellers ||..o| Capital_Management : &quot;1:1 holds&quot;
+    Sellers ||..o{ Expenses : &quot;1:M spends&quot;
+    Sellers ||..o{ Products : &quot;1:M sells&quot;
+    Sellers ||..o{ Sales : &quot;1:M makes&quot;
+          </pre>
+        </div>
+        <p class="erdmsg" id="erdmsg">Drawn live by Mermaid from the database with 1:1, 1:M, and M:N cardinalities. Click the diagram to enlarge it.</p>
+        <button class="btn big" type="button" data-doc="erd" style="background-color: #d19914; color: #ffffff;">View ERD (Crow’s Foot)</button>
+      </section>
+    <div class="nxt">
+      <a class="btn alt" href="phase1-proposal.html">&#8249; Proposal</a>
+      <a class="btn" href="phase3-normalization.html">Normalization &#8250;</a>
+    </div>
+  </main>
+
+  <footer>© 2026 Bryan Jay Lumabas and Claire Pillo</footer>
+
+  <div class="modal" id="modal">
+    <div class="mbar">
+      <span class="t" id="mt"></span>
+      <button id="mdl" type="button">Download</button>
+      <button id="mpr" type="button">Print</button>
+      <button id="mx" type="button">Close &#10005;</button>
+    </div>
+    <div class="mbody" id="mb"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+    <script src="data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.0/dist/mermaid.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

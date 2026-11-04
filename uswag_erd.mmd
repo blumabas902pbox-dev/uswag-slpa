@@ -1,0 +1,140 @@
+erDiagram
+    Accounts {
+        int account_id PK
+        enum role
+        varchar(50) username UK
+        varchar(100) email UK
+        varchar(15) contact_number UK
+        varchar(150) address
+        varchar(255) password_hash
+        char(64) api_token_hash UK
+        datetime api_token_expires_at
+        tinyint failed_login_attempts
+        datetime locked_until
+        datetime last_login_at
+        tinyint is_active
+        datetime created_at
+    }
+    Capital_Ledger {
+        bigint ledger_id PK
+        int seller_id FK
+        varchar(30) entry_type
+        decimal amount
+        decimal balance_after
+        int reference_id
+        varchar(150) note
+        datetime created_at
+    }
+    Capital_Management {
+        int capital_id PK
+        int seller_id FK
+        decimal initial_capital
+        decimal current_balance
+        datetime last_updated
+    }
+    Categories {
+        int category_id PK
+        varchar(50) category_name UK
+    }
+    Contact_Messages {
+        int message_id PK
+        varchar(100) sender_name
+        varchar(100) sender_email
+        varchar(15) contact_number
+        varchar(50) subject
+        text message_body
+        enum status
+        char(32) public_token
+        char(64) ip_hash
+        tinyint sms_sent
+        tinyint email_sent
+        int reviewed_by_account_id FK
+        datetime reviewed_at
+        datetime created_at
+    }
+    Expenses {
+        int expense_id PK
+        int seller_id FK
+        enum expense_category
+        decimal amount
+        datetime expense_date
+        varchar(150) description
+    }
+    Inventory_Transactions {
+        int transaction_id PK
+        int product_id FK
+        int sale_detail_id FK
+        enum transaction_type
+        enum verification_status
+        decimal quantity
+        datetime transaction_date
+        varchar(150) remarks
+        int verified_by_account_id FK
+        datetime verified_at
+    }
+    Products {
+        int product_id PK
+        int seller_id FK
+        int category_id FK
+        varchar(100) product_name
+        varchar(20) unit_of_measure
+        decimal unit_price
+        decimal current_stock
+        decimal reorder_level
+        tinyint is_active
+    }
+    Receipts {
+        bigint receipt_id PK
+        int sale_id FK
+        int account_id FK
+        varchar(50) receipt_number UK
+        enum receipt_type
+        longtext receipt_data
+        datetime issued_at
+        tinyint is_downloaded
+        enum sync_status
+    }
+    Sales {
+        int sale_id PK
+        int seller_id FK
+        int buyer_account_id FK
+        datetime sale_date
+        enum status
+        enum sync_status
+        char(36) client_id
+    }
+    Sale_Details {
+        int sale_detail_id PK
+        int sale_id FK
+        int product_id FK
+        decimal quantity_sold
+        decimal unit_price_at_sale
+        decimal line_total
+    }
+    Sellers {
+        int seller_id PK
+        int account_id FK
+        varchar(50) first_name
+        varchar(50) last_name
+        varchar(15) contact_number UK
+        varchar(50) barangay_zone
+        varchar(100) slp_association
+        date join_date
+        tinyint is_active
+    }
+    Accounts |o..o{ Contact_Messages : "reviews"
+    Accounts |o..o{ Inventory_Transactions : "verifies"
+    Accounts |o..o{ Receipts : "issued to"
+    Accounts |o..o{ Sales : "buys"
+    Accounts |o..o| Sellers : "is profile of"
+    Categories ||..o{ Products : "groups"
+    Products ||..o{ Inventory_Transactions : "stock moves"
+    Products ||..o{ Sale_Details : "sold as"
+    Sales ||..o| Receipts : "proves"
+    Sales ||--o{ Sale_Details : "lists"
+    Sale_Details |o..o{ Inventory_Transactions : "caused by"
+    Sellers ||--o{ Capital_Ledger : "logs"
+    Sellers ||..o| Capital_Management : "holds"
+    Sellers ||..o{ Expenses : "spends"
+    Sellers ||..o{ Products : "sells"
+    Sellers ||..o{ Sales : "makes"
