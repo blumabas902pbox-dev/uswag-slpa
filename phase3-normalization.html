@@ -28,48 +28,108 @@
       <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
         <div class="sh">3 · Normalization</div>
         <div class="pt"><span class="n">3</span><h2>Normalization</h2></div>
-        <p class="lead">Formal normalization: from one unnormalized form to BCNF.</p>
-        <div class="div">Dependencies and Key</div>
-        <div class="card"><ul class="b"><li>sale_id → seller, buyer, date, status.</li><li>seller_id → name, zone; product_id → name, category, price; category_id → category_name.</li><li>(sale_id, product_id) → quantity_sold, unit_price_at_sale.</li><li>The candidate key of the unnormalized form is {sale_id, product_id}.</li></ul></div>
+        <p class="lead">Formal normalization: from one unnormalized form to BCNF across all database entities.</p>
+        <div class="div">Dependencies and Candidate Keys</div>
+        <div class="card">
+          <ul class="b">
+            <li><b>F1 & F11:</b> sale_id → sale_date, status, sync_status, client_id, seller_id, buyer_account_id; {seller_id, client_id} → sale_id</li>
+            <li><b>F2 & F3/F4:</b> seller_id → first_name, last_name, barangay_zone, slp_association; account_id ↔ username</li>
+            <li><b>F5 & F6:</b> product_id → product_name, unit_of_measure, unit_price, seller_id, category_id; {product_name, seller_id} → product_id</li>
+            <li><b>F7 & F8:</b> category_id ↔ category_name</li>
+            <li><b>F9 & F10:</b> {sale_id, product_id} → quantity_sold, unit_price_at_sale; {quantity_sold, unit_price_at_sale} → line_total</li>
+            <li><b>Candidate Keys:</b> Primary key is {sale_id, product_id}. Alternate keys: {sale_id, product_name}, {client_id, product_id}, {client_id, product_name, seller_id}.</li>
+            <li><b>Price Snapshot Note:</b> unit_price_at_sale is an intended price snapshot tied to the sale line, ensuring historical integrity.</li>
+          </ul>
+        </div>
       </section>
+
       <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
         <div class="sh">3 · Normalization</div>
         <div class="div">Decomposition Process</div>
         <div class="decomp-flow">
           <div class="decomp-step">
             <h4>UNF (Unnormalized Form) <span class="decomp-chevron">▸</span></h4>
-            <div class="desc">A sale form with repeating groups of products before any normalization splits are applied.</div>
+            <div class="desc">
+              <strong style="color:var(--h1);">SALE_FORM</strong><br>
+              <code style="font-size:0.85em; background:var(--code); padding:0.2em 0.4em; border-radius:4px; display:block; margin:0.3em 0;">(sale_id, sale_date, status, sync_status, client_id, seller_id, first_name, last_name, barangay_zone, slp_association, buyer_account_id, buyer_username, {product_id, product_name, unit_of_measure, unit_price, category_id, category_name, quantity_sold, unit_price_at_sale, line_total})</code>
+              <em style="display:block; margin-top:0.4em;">Anomalies:</em> Non-atomic repeating product groups; insertion anomalies (cannot add unused categories); update anomalies (duplicated seller/product metadata); deletion anomalies.
+            </div>
           </div>
           
-          <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
-          <div class="decomp-step">
-            <h4>1NF (First Normal Form) <span class="decomp-chevron">▸</span></h4>
-            <div class="desc">Ensures atomic values and one row per sale and product combination.</div>
-          </div>
+          <div class="decomp-arrow" id="blindToggleBtn" style="cursor: pointer;" title="Click to toggle normal form blinds"><span><i class="fa-solid fa-arrow-down" id="blindChevronIcon" style="color: #00ffcc; transition: transform 0.3s ease;"></i></span></div>
           
-          <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
-          <div class="decomp-step">
-            <h4>2NF (Second Normal Form) <span class="decomp-chevron">▸</span></h4>
-            <div class="desc">Removes partial dependencies by splitting into Sales, Products, and Sale_Details tables.</div>
-          </div>
+          <div id="normalizationBlinds" style="display: none; flex-direction: column; gap: .8em;">
+            <div class="decomp-step">
+              <h4>1NF (First Normal Form) <span class="decomp-chevron">▸</span></h4>
+              <div class="desc">
+                Flattens repeating product groups into individual atomic rows.<br>
+                <strong style="color:var(--h1); display:block; margin-top:0.3em;">R1 Schema:</strong>
+                <code style="font-size:0.85em; background:var(--code); padding:0.2em 0.4em; border-radius:4px; display:block; margin:0.3em 0;">(sale_id, sale_date, status, sync_status, client_id, seller_id, first_name, last_name, barangay_zone, slp_association, buyer_account_id, buyer_username, product_id, product_name, unit_of_measure, unit_price, category_id, category_name, quantity_sold, unit_price_at_sale, line_total)</code>
+                <em style="display:block; margin-top:0.3em;">Primary Key:</em> {sale_id, product_id}
+              </div>
+            </div>
+            
+            <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
+            <div class="decomp-step">
+              <h4>2NF (Second Normal Form) <span class="decomp-chevron">▸</span></h4>
+              <div class="desc">
+                Removes partial dependencies on part of the composite key {sale_id, product_id}:<br>
+                <ul style="list-style: none; padding-left: 0; margin-top: 0.4em; display: flex; flex-direction: column; gap: 0.3em;">
+                  <li>• <strong>SALE_HEADER</strong>(sale_id, sale_date, status, sync_status, client_id, seller_id, first_name, last_name, barangay_zone, slp_association, buyer_account_id, buyer_username)</li>
+                  <li>• <strong>PRODUCT_INFO</strong>(product_id, product_name, unit_of_measure, unit_price, seller_id, category_id, category_name)</li>
+                  <li>• <strong>SALE_LINE</strong>(sale_id, product_id, quantity_sold, unit_price_at_sale, line_total)</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
+            <div class="decomp-step">
+              <h4>3NF (Third Normal Form) <span class="decomp-chevron">▸</span></h4>
+              <div class="desc">
+                Removes transitive dependencies (TD1: sale_id → seller_id, TD2: sale_id → buyer_account_id, TD3: product_id → category_id, TD4: line_total derivation):<br>
+                <ul style="list-style: none; padding-left: 0; margin-top: 0.4em; display: flex; flex-direction: column; gap: 0.3em;">
+                  <li>• <strong>Sales</strong>(sale_id, sale_date, status, sync_status, client_id, seller_id, buyer_account_id)</li>
+                  <li>• <strong>Sellers</strong>(seller_id, first_name, last_name, barangay_zone, slp_association)</li>
+                  <li>• <strong>Accounts</strong>(account_id, username)</li>
+                  <li>• <strong>Products</strong>(product_id, product_name, unit_of_measure, unit_price, seller_id, category_id)</li>
+                  <li>• <strong>Categories</strong>(category_id, category_name)</li>
+                  <li>• <strong>Sale_Details</strong>(sale_id, product_id, quantity_sold, unit_price_at_sale) <em>[line_total kept as GENERATED STORED column]</em></li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
           
-          <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
-          <div class="decomp-step">
-            <h4>3NF (Third Normal Form) <span class="decomp-chevron">▸</span></h4>
-            <div class="desc">Removes transitive dependencies by isolating Sellers, Accounts, and Categories.</div>
           </div>
-          
-          <div class="decomp-arrow"><span><i class="fa-solid fa-arrow-down" style="color: #00ffcc;"></i></span></div>
+
           <div class="decomp-step">
             <h4>BCNF (Boyce-Codd Normal Form) <span class="decomp-chevron">▸</span></h4>
-            <div class="desc">Verifies that every determinant is a superkey across all 12 tables.</div>
+            <div class="desc">
+              Verifies that every determinant across all 12 system tables is a candidate key / superkey.<br>
+              <strong style="display:block; margin-top:0.3em;">Verified Tables:</strong> Accounts, Sellers, Categories, Products, Sales, Sale_Details, Inventory_Transactions, Expenses, Capital_Management, Capital_Ledger, Receipts, Contact_Messages. No determinant violations remain.
+            </div>
           </div>
         </div>
       </section>
+
       <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
         <div class="sh">3 · Normalization</div>
-        <div class="div">Proofs</div>
-        <div class="card"><ul class="b"><li>Lossless: each split joins on the key of one side (Heath’s theorem).</li><li>Dependency-preserving: every dependency sits inside one final table.</li><li>unit_price_at_sale is an intended price snapshot that depends on the sale line, so it is not a violation.</li></ul></div>
+        <div class="div">Proofs & Guarantees</div>
+        <div class="card">
+          <ul class="b">
+            <li><b>Lossless-Join Proof (Heath's Theorem):</b> Every binary split joins on a key of one of the decomposed tables:
+              <div style="margin: 0.4em 0 0.6em 1em; display: flex; flex-direction: column; gap: 0.25em; font-size: 0.95em;">
+                <div>▪ S1: SALE_HEADER ∩ SALE_LINE = {sale_id, seller_id} → SALE_HEADER</div>
+                <div>▪ S2: PRODUCT_INFO ∩ SALE_LINE = {product_id} → PRODUCT_INFO</div>
+                <div>▪ S3: Sellers ∩ Sales = {seller_id} → Sellers</div>
+                <div>▪ S4: Accounts ∩ Sales = {buyer_account_id} → Accounts</div>
+                <div>▪ S5: Categories ∩ Products = {category_id} → Categories</div>
+              </div>
+            </li>
+            <li><b>Dependency-Preserving Proof:</b> Every functional dependency (F1 to F11) lies completely inside a single final relation. No inter-table joins are required to enforce functional dependencies.</li>
+            <li><b>Historical Price Preservation:</b> unit_price_at_sale captures historical transaction state and depends on {sale_id, product_id}, maintaining complete auditability without normalization conflict.</li>
+          </ul>
+        </div>
       </section>
     <div class="nxt">
       <a class="btn alt" href="phase2-modeling.html">&#8249; Modeling</a>
@@ -84,7 +144,7 @@
       <span class="t" id="mt"></span>
       <button id="mdl" type="button">Download</button>
       <button id="mpr" type="button">Print</button>
-      <button id="mx" type="button">Close &#10005;</button>
+      <button id="mx" type="button">&#10005;</button>
     </div>
     <div class="mbody" id="mb"></div>
   </div>

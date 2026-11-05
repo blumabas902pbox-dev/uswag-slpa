@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>USWAG · Phase 2</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="theme.js"></script>
+    <style>
+      .mbar button i {
+        margin-right: 5px;
+      }
+    </style>
   </head>
 <body data-prev="phase1-proposal.html" data-next="phase3-normalization.html">
   <div class="hwrap">
@@ -29,17 +35,41 @@
         <div class="pt"><span class="n">2</span><h2>Modeling</h2></div>
         <p class="lead">Conceptual model: ERD with 1:1, 1:M, and M:N cardinalities in Crow’s Foot notation.</p>
         <div class="div">Entities and Cardinality</div>
-        <div class="card"><ul class="b"><li>Task: model the domain with explicit 1:1, 1:M, and M:N cardinalities.</li><li>Result: 12 entities and 16 relationships, generated from the live database.</li><li>Strong entities: Accounts, Sellers, Categories, Products and Sales.</li><li>Weak entities: Sale_Details (identified by Sales) and Capital_Ledger (identified by Sellers).</li><li>Sale_Details acts as an associative entity resolving the M:N relationship between Sales and Products.</li><li>Optional links (0..1): the buyer on a sale and the verifier on an inventory entry.</li></ul></div>
+        <div class="card"><ul class="b"><li>The main task is to model the domain with explicit 1:1, 1:M, and M:N cardinalities.</li><li>Result: 12 entities and 16 relationships, based from USWAG database.</li><li>Strong entities: Accounts, Sellers, Categories, Products and Sales.</li><li>Weak entities: Sale_Details (identified by Sales) and Capital_Ledger (identified by Sellers).</li><li>Sale_Details acts as an associative entity resolving the M:N relationship between Sales and Products.</li><li>Optional links (0..1): the buyer on a sale and the verifier on an inventory entry.</li></ul></div>
       </section>
+
       <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
         <div class="sh">2 · Modeling</div>
-        
+        <div class="div">ERD Entity Schemas</div>
+        <div class="gal">
+          <button class="arr" id="ep" type="button" aria-label="Previous">&#8249;</button>
+          <div class="view"><div class="track" id="etrk"></div></div>
+          <button class="arr" id="en" type="button" aria-label="Next">&#8250;</button>
+        </div>
+        <div class="cnt" id="ecnt"></div>
+      </section>
+
+      <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
+        <div class="sh">2 · Modeling</div>
         <div class="div">Business Rules</div>
-        <div class="card"><ul class="b"><li>Stock changes only through admin-verified inventory entries.</li><li>A paid sale credits capital once and issues one receipt, and an empty sale cannot be paid.</li><li>Expenses debit capital, and every money movement is written to the ledger.</li><li>Offline sales carry a client UUID, so syncing never creates duplicates.</li></ul></div>
+        <div class="card">
+          <ul class="b">
+            <li>Role-based access control manages user roles, auto-provisions profiles, secures logins, and handles session tokens.</li>
+            <li>Strict domain integrity prevents duplicate user credentials, categories, product names, or seller profiles.</li>
+            <li>Stock values are non-negative and only change through admin-verified inventory logs or sale deductions.</li>
+            <li>Sales auto-assign historical item prices, reject empty orders, and lock completely once paid.</li>
+            <li>Offline sales utilize unique client identifiers to guarantee duplicate-free synchronizations.</li>
+            <li>Paid sales generate immutable JSON receipts using structured, unique reference numbers.</li>
+            <li>Seller capital is maintained in a single record and updated exclusively through thread-safe procedures.</li>
+            <li>Expenses automatically adjust seller balances, log ledger entries, and enforce category rules.</li>
+            <li>The financial ledger operates strictly as append-only, preventing manual edits or deletions.</li>
+            <li>Visitor contact forms enforce hourly rate limits and hash IP addresses to ensure system security.</li>
+          </ul>
+        </div>
       </section>
+    
       <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
         <div class="sh">2 · Modeling</div>
-        
         <div class="div">Entity-Relationship Diagram</div>
         <div class="erdbox" title="Click to enlarge">
           <pre class="mermaid" id="erd">
@@ -211,9 +241,9 @@ erDiagram
   <div class="modal" id="modal">
     <div class="mbar">
       <span class="t" id="mt"></span>
-      <button id="mdl" type="button">Download</button>
-      <button id="mpr" type="button">Print</button>
-      <button id="mx" type="button">Close &#10005;</button>
+      <button id="mdl" type="button"><i class="fa-solid fa-download"></i> Download</button>
+      <button id="mpr" type="button"><i class="fa-solid fa-print"></i> Print</button>
+      <button id="mx" type="button">&#10005;</button>
     </div>
     <div class="mbody" id="mb"></div>
   </div>

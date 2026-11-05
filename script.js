@@ -1,4 +1,4 @@
-/* USWAG presentation site. Shared script: page keys, present mode, SQL gallery, document viewer, live ERD. */
+/* USWAG presentation site. Shared script: page keys, present mode, SQL gallery, entity gallery, document viewer, live ERD. */
 (function () {
   'use strict';
 
@@ -19,11 +19,47 @@
     toast.id = setTimeout(function () { t.style.display = 'none'; }, 3000);
   }
 
-  /* ---------- Phase 3 Decomposition Dropdown Handler ---------- */
+  /* ---------- Proximity Spotlight & Cursor Glow Tracker ---------- */
+  function updatePointer(e, clientX, clientY) {
+    const interactives = document.querySelectorAll('.card, .decomp-step, .btn, nav a, nav button');
+    interactives.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      el.style.setProperty('--x', `${x}px`);
+      el.style.setProperty('--y', `${y}px`);
+    });
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    updatePointer(e, e.clientX, e.clientY);
+  });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!e.touches.length) return;
+    const touch = e.touches[0];
+    updatePointer(e, touch.clientX, touch.clientY);
+  }, { passive: true });
+
+  /* ---------- Phase 3 Decomposition Dropdown & Blinds Handler ---------- */
   document.addEventListener('click', function (e) {
     var step = e.target.closest('.decomp-step');
     if (step) {
       step.classList.toggle('open');
+      return;
+    }
+
+    var toggleBtn = e.target.closest('#blindToggleBtn');
+    if (toggleBtn) {
+      var blinds = $('#normalizationBlinds');
+      var icon = $('#blindChevronIcon');
+      if (blinds) {
+        var isOpen = blinds.style.display === 'flex';
+        blinds.style.display = isOpen ? 'none' : 'flex';
+        if (icon) {
+          icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+      }
     }
   });
 
@@ -54,6 +90,125 @@
     var erdBox = $('.erdbox');
     if (erdBox) erdBox.addEventListener('click', function () { openDoc('erd'); });
     erdReady = drawErd(erdNode);
+  }
+
+  /* ---------- ERD Entity Slider Gallery (Phase 2) ---------- */
+  var ENTITIES = [
+    {
+      n: 'Accounts',
+      def: 'erDiagram\n    Accounts {\n        int account_id PK\n        enum role\n        varchar(50) username UK\n        varchar(100) email UK\n        varchar(15) contact_number UK\n        varchar(150) address\n        varchar(255) password_hash\n        char(64) api_token_hash UK\n        datetime api_token_expires_at\n        tinyint failed_login_attempts\n        datetime locked_until\n        datetime last_login_at\n        tinyint is_active\n        datetime created_at\n    }'
+    },
+    {
+      n: 'Capital_Ledger',
+      def: 'erDiagram\n    Capital_Ledger {\n        bigint ledger_id PK\n        int seller_id FK\n        varchar(30) entry_type\n        decimal amount\n        decimal balance_after\n        int reference_id\n        varchar(150) note\n        datetime created_at\n    }'
+    },
+    {
+      n: 'Capital_Management',
+      def: 'erDiagram\n    Capital_Management {\n        int capital_id PK\n        int seller_id FK\n        decimal initial_capital\n        decimal current_balance\n        datetime last_updated\n    }'
+    },
+    {
+      n: 'Categories',
+      def: 'erDiagram\n    Categories {\n        int category_id PK\n        varchar(50) category_name UK\n    }'
+    },
+    {
+      n: 'Contact_Messages',
+      def: 'erDiagram\n    Contact_Messages {\n        int message_id PK\n        varchar(100) sender_name\n        varchar(100) sender_email\n        varchar(15) contact_number\n        varchar(50) subject\n        text message_body\n        enum status\n        char(32) public_token\n        char(64) ip_hash\n        tinyint sms_sent\n        tinyint email_sent\n        int reviewed_by_account_id FK\n        datetime reviewed_at\n        datetime created_at\n    }'
+    },
+    {
+      n: 'Expenses',
+      def: 'erDiagram\n    Expenses {\n        int expense_id PK\n        int seller_id FK\n        enum expense_category\n        decimal amount\n        datetime expense_date\n        varchar(150) description\n    }'
+    },
+    {
+      n: 'Inventory_Transactions',
+      def: 'erDiagram\n    Inventory_Transactions {\n        int transaction_id PK\n        int product_id FK\n        int sale_detail_id FK\n        enum transaction_type\n        enum verification_status\n        decimal quantity\n        datetime transaction_date\n        varchar(150) remarks\n        int verified_by_account_id FK\n        datetime verified_at\n    }'
+    },
+    {
+      n: 'Products',
+      def: 'erDiagram\n    Products {\n        int product_id PK\n        int seller_id FK\n        int category_id FK\n        varchar(100) product_name\n        varchar(20) unit_of_measure\n        decimal unit_price\n        decimal current_stock\n        decimal reorder_level\n        tinyint is_active\n    }'
+    },
+    {
+      n: 'Receipts',
+      def: 'erDiagram\n    Receipts {\n        bigint receipt_id PK\n        int sale_id FK\n        int account_id FK\n        varchar(50) receipt_number UK\n        enum receipt_type\n        longtext receipt_data\n        datetime issued_at\n        tinyint is_downloaded\n        enum sync_status\n    }'
+    },
+    {
+      n: 'Sales',
+      def: 'erDiagram\n    Sales {\n        int sale_id PK\n        int seller_id FK\n        int buyer_account_id FK\n        datetime sale_date\n        enum status\n        enum sync_status\n        char(36) client_id\n    }'
+    },
+    {
+      n: 'Sale_Details',
+      def: 'erDiagram\n    Sale_Details {\n        int sale_detail_id PK\n        int sale_id FK\n        int product_id FK\n        decimal quantity_sold\n        decimal unit_price_at_sale\n        decimal line_total\n    }'
+    },
+    {
+      n: 'Sellers',
+      def: 'erDiagram\n    Sellers {\n        int seller_id PK\n        int account_id FK\n        varchar(50) first_name\n        varchar(50) last_name\n        varchar(15) contact_number UK\n        varchar(50) barangay_zone\n        varchar(100) slp_association\n        date join_date\n        tinyint is_active\n    }'
+    }
+  ];
+
+  var ei = 0;
+
+  function initErdEntityGallery() {
+    var etrk = $('#etrk');
+    if (!etrk) return;
+
+    etrk.innerHTML = ENTITIES.map(function (x, i) {
+      return '<div class="cell"><div class="sc" data-ei="' + i + '" style="min-height: 380px;"><h3>' + esc(x.n) + ' Entity</h3><div class="erdbox" style="margin-top:0.5em; padding:1em; min-height: 300px; display:flex; align-items:center; justify-content:center;"><pre class="mermaid" id="e_mermaid_' + i + '">' + esc(x.def) + '</pre></div></div></div>';
+    }).join('');
+
+    ENTITIES.forEach(function (_, i) {
+      var n = $('#e_mermaid_' + i);
+      if (n) drawErd(n);
+    });
+
+    $$('#etrk .sc').forEach(function (c) {
+      c.onclick = function () {
+        var ent = ENTITIES[c.dataset.ei];
+        openText(ent.n + ' (Entity ERD)', ent.def);
+      };
+    });
+
+    erdEntityMove(0);
+  }
+
+  function erdEntityMove(d) {
+    var etrk = $('#etrk');
+    if (!etrk) return;
+    var n = ENTITIES.length;
+    ei = (ei + d + n) % n;
+    etrk.style.transform = 'translateX(-' + ei * 100 + '%)';
+    $$('#etrk .cell').forEach(function (c, i) { c.classList.toggle('cur', i === ei); });
+    var ecnt = $('#ecnt');
+    if (ecnt) ecnt.textContent = 'Entity ' + (ei + 1) + ' / ' + n;
+  }
+
+  if ($('#etrk')) {
+    $('#ep').onclick = function () { erdEntityMove(-1); };
+    $('#en').onclick = function () { erdEntityMove(1); };
+    
+    var eview = $('#etrk').parentElement;
+    if (eview) {
+      var ex = null;
+      eview.addEventListener('touchstart', function (e) { ex = e.touches[0].clientX; e.stopPropagation(); }, { passive: true });
+      eview.addEventListener('touchend', function (e) {
+        e.stopPropagation();
+        if (ex === null) return;
+        var dx = e.changedTouches[0].clientX - ex;
+        if (Math.abs(dx) > 40) erdEntityMove(dx < 0 ? 1 : -1);
+        ex = null;
+      });
+
+      eview.setAttribute('tabindex', '0');
+      eview.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          erdEntityMove(-1);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          erdEntityMove(1);
+        }
+      });
+    }
+
+    initErdEntityGallery();
   }
 
   /* ---------- slides and present mode ---------- */
@@ -148,9 +303,9 @@
     var trk = $('#trk');
     if (!trk) return;
     trk.innerHTML = list.map(function (x, i) {
-      return '<div class="cell"><div class="sc" data-i="' + i + '"><h3>' + esc(x.n) + '</h3><pre>' + esc(x.s.split('\n').slice(0, 12).join('\n')) + '</pre></div></div>';
+      return '<div class="cell"><div class="sc" data-i="' + i + '" style="min-height: 380px;"><h3>' + esc(x.n) + '</h3><pre style="max-height: 280px; overflow: hidden;">' + esc(x.s.split('\n').slice(0, 20).join('\n')) + '</pre></div></div>';
     }).join('');
-    $$('.sc').forEach(function (c) { c.onclick = function () { openText(list[c.dataset.i].n, list[c.dataset.i].s); }; });
+    $$('.sc', trk).forEach(function (c) { c.onclick = function () { openText(list[c.dataset.i].n, list[c.dataset.i].s); }; });
     galMove(0);
   }
 
@@ -161,7 +316,7 @@
     gi = (gi + d + n) % n;
     var trk = $('#trk');
     if (trk) trk.style.transform = 'translateX(-' + gi * 100 + '%)';
-    $$('.cell').forEach(function (c, i) { c.classList.toggle('cur', i === gi); });
+    $$('.cell', trk).forEach(function (c, i) { c.classList.toggle('cur', i === gi); });
     var cnt = $('#cnt');
     if (cnt) cnt.textContent = gk + ' ' + (gi + 1) + ' / ' + n;
   }
@@ -170,7 +325,7 @@
     $('#gp').onclick = function () { galMove(-1); };
     $('#gn').onclick = function () { galMove(1); };
     var gx = null;
-    var gv = $('.view');
+    var gv = $('#trk').parentElement;
     if (gv) {
       gv.addEventListener('touchstart', function (e) { gx = e.touches[0].clientX; e.stopPropagation(); }, { passive: true });
       gv.addEventListener('touchend', function (e) {
@@ -281,7 +436,6 @@
         f.contentWindow.print();
         return;
       } catch (e) {
-        // Fallback for cross-origin or offline PDF frames: Open direct print window / print preview
         var printWin = window.open(viewing && viewing.href ? viewing.href : '', '_blank');
         if (printWin) {
           printWin.print();
@@ -290,7 +444,6 @@
       }
     }
     
-    // For text, SQL scripts, and document outlines in the modal:
     var modalBodyHtml = $('#mb').innerHTML;
     var printWindow = window.open('', '_blank');
     if (printWindow) {

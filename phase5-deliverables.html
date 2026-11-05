@@ -3,9 +3,33 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>USWAG · Phase 5 · Deliverables</title>
+    <title>USWAG · Phase 5</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="theme.js"></script>
+    <style>
+      .thumb {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      
+      .thumb-pdf { color: #f2a69d !important; } 
+      .thumb-docx { color: #92b1da !important; }  
+      .thumb-sql { color: #f9e28f !important; }    
+      .thumb-pptx { color: #f4be8a !important; }  
+      .thumb-img { color: #a0c2a3 !important; }  
+      .thumb-purple { color: #cdace6 !important; }  
+
+      .mbar button i {
+        margin-right: 5px;
+      }
+    </style>
   </head>
 <body data-prev="phase4-implementation.html" data-next="">
   <div class="hwrap">
@@ -30,26 +54,27 @@
         <p class="lead">Proof of completion: view, download or print each file.</p>
         <div class="div">Softcopy Documents</div>
         <div class="dl">
+  
           <div class="doc">
-            <div class="thumb">.SVG</div>
-            <div class="in"><h4>ERD (Crow’s Foot)</h4><p>Live Mermaid diagram of all 12 entities.</p></div>
+            <div class="thumb thumb-purple"><i class="fa-solid fa-file-image"></i></div>
+            <div class="in"><h4>ERD (Crow’s Foot)</h4><p>A vector diagram of all 12 entities.</p></div>
             <div class="btns">
               <button class="btn alt" type="button" data-doc="erd">View</button>
               <a class="btn" href="../diagrams/uswag_erd_crowsfoot.svg" download>Download</a>
             </div>
           </div>
-          
+        
           <div class="doc">
-            <div class="thumb">.PDF</div>
-            <div class="in"><h4>Business Rules</h4><p>The 10 rules the schema enforces.</p></div>
+            <div class="thumb thumb-pdf"><i class="fa-solid fa-file-pdf"></i></div>
+            <div class="in"><h4>Business Rules</h4><p>The rules the schema enforces.</p></div>
             <div class="btns">
               <button class="btn alt" type="button" data-doc="rules">View</button>
               <a class="btn" href="../documents/USWAG_Business_Rules.pdf" download>Download</a>
             </div>
           </div>
-          
+        
           <div class="doc">
-            <div class="thumb">.PDF</div>
+            <div class="thumb thumb-pdf"><i class="fa-solid fa-file-pdf"></i></div>
             <div class="in"><h4>Normalization Proofs</h4><p>Dependencies from UNF to BCNF.</p></div>
             <div class="btns">
               <button class="btn alt" type="button" data-doc="norm">View</button>
@@ -58,8 +83,8 @@
           </div>
           
           <div class="doc">
-            <div class="thumb">.PDF</div>
-            <div class="in"><h4>Performance Report</h4><p>Index test: 146 ms to 2.5 ms.</p></div>
+            <div class="thumb thumb-pdf"><i class="fa-solid fa-file-pdf"></i></div>
+            <div class="in"><h4>Performance Report</h4><p>Index test: benchmark results.</p></div>
             <div class="btns">
               <button class="btn alt" type="button" data-doc="perf">View</button>
               <a class="btn" href="../documents/USWAG_Performance_Report.pdf" download>Download</a>
@@ -67,7 +92,7 @@
           </div>
           
           <div class="doc">
-            <div class="thumb">.SQL</div>
+            <div class="thumb thumb-sql"><i class="fa-solid fa-file-code"></i></div>
             <div class="in"><h4>uswag_db.sql</h4><p>Tables, triggers, procedures, views and queries.</p></div>
             <div class="btns">
               <button class="btn alt" type="button" data-doc="sql">View</button>
@@ -76,47 +101,29 @@
           </div>
           
           <div class="doc">
-            <div class="thumb">.DOCX</div>
+            <div class="thumb thumb-docx"><i class="fa-solid fa-file-word"></i></div>
             <div class="in"><h4>Proposal (Word)</h4><p>The presentation as a Word file.</p></div>
             <div class="btns">
               <button class="btn alt" type="button" data-doc="docx">View</button>
               <a class="btn" href="../presentation/USWAG_Project_Proposal.docx" download>Download</a>
             </div>
           </div>
-          
+        
           <div class="doc">
-            <div class="thumb">.PDF</div>
+            <div class="thumb thumb-pdf"><i class="fa-solid fa-file-pdf"></i></div>
             <div class="in"><h4>Proposal (PDF)</h4><p>The presentation as 16:9 PDF slides.</p></div>
             <div class="btns">
               <button class="btn alt" type="button" data-doc="pdf">View</button>
               <a class="btn" href="../presentation/USWAG_Project_Proposal.pdf" download>Download</a>
             </div>
           </div>
-          
+        
           <div class="doc">
-            <div class="thumb">.PPTX</div>
-            <div class="in"><h4>Slides (Plain)</h4><p>Editable PowerPoint slides.</p></div>
+            <div class="thumb thumb-pptx"><i class="fa-solid fa-file-powerpoint"></i></div>
+            <div class="in"><h4>Slides (Plain)</h4><p>An editable PowerPoint slides.</p></div>
             <div class="btns">
               <button class="btn alt" type="button" data-doc="pptx">View</button>
               <a class="btn" href="../presentation/USWAG_Slides_Plain.pptx" download>Download</a>
-            </div>
-          </div>
-          
-          <div class="doc">
-            <div class="thumb">.PPTX</div>
-            <div class="in"><h4>Slides (Interface)</h4><p>Screenshots of this site as slides.</p></div>
-            <div class="btns">
-              <button class="btn alt" type="button" data-doc="ipptx">View</button>
-              <a class="btn" href="../presentation/USWAG_Slides_Interface.pptx" download>Download</a>
-            </div>
-          </div>
-          
-          <div class="doc">
-            <div class="thumb">.MD</div>
-            <div class="in"><h4>READ.md</h4><p>What is inside and how to run it.</p></div>
-            <div class="btns">
-              <button class="btn alt" type="button" data-doc="readme">View</button>
-              <a class="btn" href="../READ.md" download>Download</a>
             </div>
           </div>
         </div>
@@ -132,11 +139,14 @@
   <div class="modal" id="modal">
     <div class="mbar">
       <span class="t" id="mt"></span>
-      <button id="mdl" type="button">Download</button>
-      <button id="mpr" type="button">Print</button>
-      <button id="mx" type="button">Close &#10005;</button>
+      
+      <button id="mdl" type="button"><i class="fa-solid fa-download"></i> Download</button>
+      <button id="mpr" type="button"><i class="fa-solid fa-print"></i> Print</button>
+      <button id="mx" type="button">&#10005;</button>
     </div>
+    
     <div class="mbody" id="mb"></div>
+    
   </div>
   <div class="toast" id="toast"></div>
     <script src="data.js"></script>

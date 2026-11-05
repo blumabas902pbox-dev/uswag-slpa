@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>USWAG · Phase 4</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="theme.js"></script>
+    <style>
+      .mbar button i {
+        margin-right: 5px;
+      }
+    </style>
   </head>
 <body data-prev="phase3-normalization.html" data-next="phase5-deliverables.html">
   <div class="hwrap">
@@ -30,7 +36,6 @@
         <p class="lead">Physical schema: executable SQL that enforces integrity.</p>
         <div class="div">Database Structure Gallery</div>
         <div class="pills" id="tabs"></div>
-        
         <div class="gal">
           <button class="arr" id="gp" type="button" aria-label="Previous">&#8249;</button>
           <div class="view"><div class="track" id="trk"></div></div>
@@ -38,15 +43,16 @@
         </div>
         <div class="cnt" id="cnt"></div>
       </section>
+    
       <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
         <div class="sh">4 · Implementation</div>
         <div class="div">System Core Features</div>
         <div class="card"><ul class="b"><li>Offline-first client UUID synchronization preventing duplicate entries in low-signal rural areas.</li><li>Secured credentials, hashed API tokens, and multi-tier role-based account authorization.</li><li>Automated inventory triggers and append-only capital ledger maintaining absolute financial accuracy.</li></ul></div>
       </section>
+    
       <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
         <div class="sh">4 · Implementation</div>
         <div class="div">Strengths & Weaknesses Assessment</div>
-        
         <div class="card">
           <table class="sw-table">
             <thead>
@@ -61,11 +67,13 @@
           </table>
         </div>
       </section>
+    
       <section class="slide" data-foot="© 2026 Bryan Jay Lumabas and Claire Pillo">
         <div class="sh">4 · Implementation</div>
         <div class="div">Performance</div>
         <div class="card"><ul class="b"><li>Query: cash flow per seller, joined to sale lines.</li><li>Before: a full scan of 100,000 rows took 146 ms.</li><li>After idx_sales_seller_status and idx_saledetails_sale: 250 index probes took 2.5 ms, about 58 times faster.</li></ul></div>
       </section>
+    
     <div class="nxt">
       <a class="btn alt" href="phase3-normalization.html">&#8249; Normalization</a>
       <a class="btn alt" href="phase5-deliverables.html">Deliverables &#8250;</a>
@@ -77,11 +85,13 @@
   <div class="modal" id="modal">
     <div class="mbar">
       <span class="t" id="mt"></span>
-      <button id="mdl" type="button">Download</button>
-      <button id="mpr" type="button">Print</button>
-      <button id="mx" type="button">Close &#10005;</button>
+      <button id="mdl" type="button"><i class="fa-solid fa-download"></i> Download</button>
+      <button id="mpr" type="button"><i class="fa-solid fa-print"></i> Print</button>
+      <button id="mx" type="button">&#10005;</button>
     </div>
+    
     <div class="mbody" id="mb"></div>
+    
   </div>
   <div class="toast" id="toast"></div>
     <script src="data.js"></script>
