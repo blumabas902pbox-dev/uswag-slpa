@@ -875,32 +875,26 @@ WHERE is_active = 1 AND role IN ('SLP Admin', 'Seller');
 -- Replace the fixed seller_id = 1 with a ? placeholder in a prepared statement.
 -- =====================================================================================
 
--- Query 1: SLP Admin Cash Flow Monitoring View
 SELECT seller_id, seller_name, barangay_zone, slp_association, total_sales_revenue, total_expenses, net_cash_flow 
 FROM vw_seller_cash_flow 
 ORDER BY net_cash_flow DESC;
 
--- Query 2: Inventory Audit Trail Verification
 SELECT t.transaction_id, p.product_name, t.transaction_type, t.quantity, t.verification_status, t.remarks, t.transaction_date
 FROM Inventory_Transactions t
 JOIN Products p ON t.product_id = p.product_id
 ORDER BY t.transaction_date DESC;
 
--- Query 3: Offline Synchronization Queue Inspection
 SELECT s.sale_id, s.seller_id, s.sync_status AS sale_sync, r.receipt_number, r.sync_status AS receipt_sync
 FROM Sales s
 LEFT JOIN Receipts r ON s.sale_id = r.sale_id
 WHERE s.sync_status = 'Offline' OR r.sync_status = 'Pending';
 
--- Query 4: Execution plan (use it to compare before and after indexing)
 EXPLAIN SELECT sa.sale_id, sa.seller_id, SUM(sd.line_total) AS total_amount
 FROM Sales sa
 JOIN Sale_Details sd ON sa.sale_id = sd.sale_id
 WHERE sa.status = 'Paid' AND sa.seller_id = 1
 GROUP BY sa.sale_id, sa.seller_id;
 
--- Query 5: Product Category Sales & Revenue Breakdown
--- Counts sale lines of Paid sales only, so it agrees with vw_seller_cash_flow and the ledger.
 SELECT c.category_name, COUNT(DISTINCT p.product_id) AS total_products, COALESCE(SUM(sd.quantity_sold), 0) AS units_sold, COALESCE(SUM(sd.line_total), 0.00) AS total_revenue
 FROM Categories c
 LEFT JOIN Products p ON c.category_id = p.category_id
@@ -910,15 +904,12 @@ LEFT JOIN (SELECT d.product_id, d.quantity_sold, d.line_total
 GROUP BY c.category_id, c.category_name
 ORDER BY total_revenue DESC;
 
--- Query 6: Low stock alert (stock below each product's reorder_level)
--- Uses Products.reorder_level and skips inactive products, like vw_low_stock.
 SELECT p.product_id, p.product_name, CONCAT(s.first_name, ' ', s.last_name) AS seller_name, p.current_stock, p.unit_of_measure
 FROM Products p
 JOIN Sellers s ON p.seller_id = s.seller_id
 WHERE p.current_stock < p.reorder_level AND p.is_active = 1
 ORDER BY p.current_stock ASC;
 
--- Query 7: Top-Performing Sellers Leaderboard
 SELECT s.seller_id, CONCAT(s.first_name, ' ', s.last_name) AS seller_name, s.slp_association, COUNT(DISTINCT sa.sale_id) AS completed_sales, COALESCE(SUM(sd.line_total), 0.00) AS gross_earnings
 FROM Sellers s
 JOIN Sales sa ON s.seller_id = sa.seller_id
@@ -927,7 +918,6 @@ WHERE sa.status = 'Paid'
 GROUP BY s.seller_id, s.first_name, s.last_name, s.slp_association
 ORDER BY gross_earnings DESC;
 
--- Query 8: Micro-Entrepreneur Profit & Loss Statement
 SELECT s.seller_id, CONCAT(s.first_name, ' ', s.last_name) AS seller_name, cm.initial_capital, cm.current_balance, COALESCE(e.total_expense, 0.00) AS total_expenses
 FROM Sellers s
 JOIN Capital_Management cm ON s.seller_id = cm.seller_id
@@ -936,18 +926,15 @@ LEFT JOIN (
 ) e ON s.seller_id = e.seller_id
 WHERE s.seller_id = 1;
 
--- Query 9: Thermal Printer JSON Receipt Retrieval
 SELECT receipt_id, receipt_number, JSON_UNQUOTE(JSON_EXTRACT(receipt_data, '$.system')) AS system_header, JSON_UNQUOTE(JSON_EXTRACT(receipt_data, '$.payment_status')) AS status
 FROM Receipts
 WHERE sync_status = 'Synced';
 
--- Query 10: Active User Authentication Audit
 SELECT account_id, username, email, role, is_active, created_at
 FROM Accounts
 WHERE is_active = 1 AND role IN ('SLP Admin', 'Seller')
 ORDER BY created_at DESC;
 
--- Query 11: Admin review queue (entries waiting for sp_verify_inventory)
 SELECT t.transaction_id, p.product_name, CONCAT(s.first_name, ' ', s.last_name) AS seller_name, t.transaction_type, t.quantity, p.unit_of_measure, t.transaction_date, t.remarks
 FROM Inventory_Transactions t
 JOIN Products p ON t.product_id = p.product_id
@@ -955,19 +942,16 @@ JOIN Sellers s ON p.seller_id = s.seller_id
 WHERE t.verification_status = 'Pending Review'
 ORDER BY t.transaction_date ASC;
 
--- Query 12: Seller capital statement from the append-only ledger
 SELECT ledger_id, entry_type, amount, balance_after, reference_id, note, created_at
 FROM Capital_Ledger
 WHERE seller_id = 1
 ORDER BY ledger_id DESC;
 
--- Query 13: Integrity check, capital (must return zero rows)
 SELECT cm.seller_id, cm.current_balance, cm.initial_capital + COALESCE(l.total, 0.00) AS expected_balance
 FROM Capital_Management cm
 LEFT JOIN (SELECT seller_id, SUM(amount) AS total FROM Capital_Ledger GROUP BY seller_id) l ON l.seller_id = cm.seller_id
 WHERE cm.current_balance <> cm.initial_capital + COALESCE(l.total, 0.00);
 
--- Query 14: Integrity check, stock (must return zero rows)
 SELECT p.product_id, p.product_name, p.current_stock, COALESCE(t.net, 0.000) AS expected_stock
 FROM Products p
 LEFT JOIN (SELECT product_id,
