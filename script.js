@@ -73,15 +73,14 @@
     return true;
   }
 
-  function drawErd(node) {
+  function drawErd(node, onFail) {
     if (!node) return;
-    if (!initMermaid()) {
+    var fail = function () {
+      if (onFail) { onFail(); return; }
       node.outerHTML = '<div style="padding:2em; text-align:center; color:var(--text); background:var(--card);">ERD Crow’s Foot Diagram (12 Entities, 16 Relationships)</div>';
-      return;
-    }
-    return window.mermaid.run({ nodes: [node] }).catch(function () {
-      node.outerHTML = '<div style="padding:2em; text-align:center; color:var(--text); background:var(--card);">ERD Crow’s Foot Diagram (12 Entities, 16 Relationships)</div>';
-    });
+    };
+    if (!initMermaid()) { fail(); return; }
+    return window.mermaid.run({ nodes: [node] }).catch(fail);
   }
 
   var erdNode = $('#erd');
@@ -248,7 +247,7 @@
 
   var pbar = document.createElement('div');
   pbar.className = 'pbar';
-  pbar.innerHTML = '<button id="pprev" aria-label="Previous slide">&#2039;</button><button id="pcount" disabled>1</button><button id="pnext" aria-label="Next slide">&#203A;</button><button id="pexit">Exit</button>';
+  pbar.innerHTML = '<button id="pprev" aria-label="Previous slide">&#8249;</button><button id="pcount" disabled>1</button><button id="pnext" aria-label="Next slide">&#8250;</button><button id="pexit">Exit</button>';
   document.body.appendChild(pbar);
   $('#pprev').onclick = function () { go(-1); };
   $('#pnext').onclick = function () { go(1); };
@@ -348,6 +347,7 @@
     if (modal) modal.classList.remove('on');
     var mb = $('#mb');
     if (mb) mb.innerHTML = '';
+    freeBlob();
     viewing = null;
   }
 
@@ -371,62 +371,183 @@
     a.remove();
   }
 
+  /* ----- file lookup: works from any folder layout, on http(s) and on file:// ----- */
+  var blobUrl = null;
+  var MIME = {
+    pdf: 'application/pdf', svg: 'image/svg+xml', png: 'image/png',
+    sql: 'text/plain;charset=utf-8', mmd: 'text/plain;charset=utf-8', md: 'text/plain;charset=utf-8',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+  };
+
+  function extOf(name) {
+    var m = /\.([a-z0-9]+)$/i.exec(name || '');
+    return m ? m[1].toLowerCase() : '';
+  }
+
+  function freeBlob() {
+    if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+  }
+
+  // The listed path first, then the same file with the folder removed, at the site root and next to the page.
+  function candidates(d) {
+    var out = [];
+    [d.file].concat(d.alt || []).forEach(function (f) {
+      if (!f) return;
+      var base = f.split('/').pop();
+      var bare = f.replace(/^(\.\.\/|\.\/)+/, '');
+      [f, bare, './' + base, base, '../' + base, '/' + bare].forEach(function (p) {
+        if (out.indexOf(p) < 0) out.push(p);
+      });
+    });
+    return out;
+  }
+
+  // Resolves to a Blob, or null when the file cannot be fetched (not found, or the site runs from file://).
+  function fetchFile(d) {
+    var list = candidates(d), i = 0;
+    if (!list.length || !window.fetch || location.protocol === 'file:') return Promise.resolve(null);
+    function next() {
+      if (i >= list.length) return Promise.resolve(null);
+      return fetch(list[i++]).then(function (r) {
+        if (!r.ok) return next();
+        // some hosts answer a missing file with index.html and status 200
+        if (/text\/html/i.test(r.headers.get('content-type') || '') && extOf(d.file) !== 'html') return next();
+        return r.blob();
+      }).catch(next);
+    }
+    return next();
+  }
+
+  function saveBlob(name, blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+
+  function typed(blob, name) {
+    return new Blob([blob], { type: MIME[extOf(name)] || blob.type });
+  }
+
+  function missing(body, name) {
+    body.innerHTML = '<div class="paper"><h1>File not found</h1><p><b>' + esc(name) + '</b> is not on this site. Check that the file sits in the folder listed in script.js.</p></div>';
+  }
+
   window.openText = function (title, text) {
-    viewing = { name: title.replace(/\W+/g, '_') + '.sql', text: text };
+    var ext = /^\s*erDiagram/.test(text) ? '.mmd' : '.sql';
+    viewing = { name: title.replace(/\W+/g, '_').replace(/^_+|_+$/g, '') + ext, text: text };
     var mb = $('#mb');
     if (mb) mb.innerHTML = numbered(text);
     openModal(title);
   };
 
-  function outline() {
-    return '<div class="paper"><h1>USWAG Project Overview & Document Outline</h1>' + (U.SLIDES || []).map(function (s, i) {
+  function outline(id) {
+    var list = (U.OUTLINES || {})[id] || U.SLIDES || [];
+    return '<div class="paper"><h1>USWAG Project Overview & Document Outline</h1>' + list.map(function (s, i) {
       return '<h3>' + (i + 1) + '. ' + esc(s.t) + '</h3><ul>' + s.b.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('') + '</ul>';
-    }).join('') + '<p style="margin-top:1em;"><i>Available offline in real-time.</i></p></div>';
+    }).join('') + '<p style="margin-top:1em;"><i>Preview only. Use Download for the full file.</i></p></div>';
+  }
+
+  // Document list. The paths match the folders used by the site; anything in U.DOCS overrides it.
+  var FALLBACK_DOCS = {
+    'erd': { title: 'ERD (Crow’s Foot)', file: '../diagrams/uswag_erd_crowsfoot.svg', kind: 'erd' },
+    'mmd': { title: 'ERD Mermaid Code', file: '../diagrams/uswag_erd.mmd', kind: 'text', text: U.ERD },
+    'rules': { title: 'Business Rules', file: '../documents/USWAG_Business_Rules.pdf', kind: 'pdf' },
+    'norm': { title: 'Normalization Proofs', file: '../documents/USWAG_Normalization_Proofs.pdf', kind: 'pdf' },
+    'perf': { title: 'Performance Report', file: '../documents/USWAG_Performance_Report.pdf', kind: 'pdf' },
+    'sql': { title: 'uswag_db.sql', file: '../database/uswag_db.sql', kind: 'text', text: U.SQL },
+    'docx': { title: 'Proposal (Word)', file: '../presentation/USWAG_Project_Proposal.docx', kind: 'office' },
+    'pdf': { title: 'Proposal (PDF)', file: '../presentation/USWAG_Project_Proposal.pdf', kind: 'pdf' },
+    'pptx': { title: 'Slides (Plain)', file: '../presentation/USWAG_Slides_Plain.pptx', kind: 'office' },
+    'interface': { title: 'Slides (Interface)', file: '../presentation/USWAG_Slides_Interface.pptx', kind: 'office' },
+    'readme': { title: 'READ.md', file: '../READ.md', alt: ['../README.md'], kind: 'text' }
+  };
+
+  // If a button carries a data-doc value that is not listed above, match it by its card title.
+  var TITLE_IDS = [
+    ['mermaid code', 'mmd'], ['crow', 'erd'], ['business rules', 'rules'], ['normalization', 'norm'],
+    ['performance', 'perf'], ['uswag_db', 'sql'], ['proposal (word)', 'docx'], ['proposal (pdf)', 'pdf'],
+    ['slides (plain)', 'pptx'], ['slides (interface)', 'interface'], ['read.md', 'readme'], ['readme', 'readme']
+  ];
+
+  function docIdFor(el) {
+    var id = el.dataset.doc;
+    var t = (el.textContent || '').toLowerCase();
+    var hits = [];
+    TITLE_IDS.forEach(function (p) { if (t.indexOf(p[0]) > -1 && hits.indexOf(p[1]) < 0) hits.push(p[1]); });
+    // the card title is what the person sees, so it decides when it names exactly one document
+    if (hits.length === 1) return hits[0];
+    return id;
+  }
+
+  function showErd(body, v) {
+    body.innerHTML = '<div class="erdbox" style="padding:1.5em;"><pre class="mermaid" id="erdbig">' + esc(U.ERD || '') + '</pre></div>';
+    // Last resort when Mermaid cannot load: show the saved SVG file instead.
+    var asImage = function () { if (viewing === v) showFile(body, v, 'img'); };
+    if (!U.ERD) { asImage(); return; }
+    drawErd($('#erdbig'), asImage);
+  }
+
+  function showFile(body, v, tag) {
+    fetchFile(v).then(function (b) {
+      if (viewing !== v) return; // the window was closed or another file opened meanwhile
+      var src;
+      if (b) {
+        v.blob = typed(b, v.name);
+        freeBlob();
+        blobUrl = URL.createObjectURL(v.blob);
+        src = blobUrl;
+      } else if (location.protocol === 'file:') {
+        src = v.file;
+      } else {
+        missing(body, v.name);
+        return;
+      }
+      body.innerHTML = tag === 'img'
+        ? '<div class="erdbox" style="padding:1.5em;"><img src="' + src + '" alt="' + esc(v.title) + '" style="max-width:100%;height:auto;"></div>'
+        : '<iframe src="' + src + '" title="' + esc(v.title) + '"></iframe>';
+    });
   }
 
   window.openDoc = function (id) {
-    var d = (U.DOCS || {})[id];
-
-    // Fallback document mappings matching phase5-deliverables.html data-doc attributes
-    var fallbackDocs = {
-      'erd': { title: 'ERD (Crow’s Foot)', file: '../diagrams/uswag_erd_crowsfoot.svg', kind: 'image' },
-      'rules': { title: 'Business Rules', file: '../documents/USWAG_Business_Rules.pdf', kind: 'pdf' },
-      'norm': { title: 'Normalization Proofs', file: '../documents/USWAG_Normalization_Proofs.pdf', kind: 'pdf' },
-      'perf': { title: 'Performance Report', file: '../documents/USWAG_Performance_Report.pdf', kind: 'pdf' },
-      'sql': { title: 'uswag_db.sql', file: '../database/uswag_db.sql', kind: 'sql', text: U.SQL || '/* uswag_db.sql */' },
-      'docx': { title: 'Proposal (Word)', file: '../presentation/USWAG_Project_Proposal.docx', kind: 'office' },
-      'pdf': { title: 'Proposal (PDF)', file: '../presentation/USWAG_Project_Proposal.pdf', kind: 'pdf' },
-      'pptx': { title: 'Slides (Plain)', file: '../presentation/USWAG_Slides_Plain.pptx', kind: 'office' }
-    };
-
-    if (!d) {
-      d = fallbackDocs[id];
-    }
-    if (!d && id !== 'erd') return;
-    
-    if (id === 'erd') {
-      viewing = { name: 'uswag_erd_crowsfoot.svg', href: '../diagrams/uswag_erd_crowsfoot.svg', text: U.ERD || '' };
-      var body = $('#mb');
-      openModal('ERD (Crow’s Foot)');
-      body.innerHTML = '<div class="erdbox" style="padding:1.5em;"><pre class="mermaid" id="erdbig">' + esc(U.ERD || '') + '</pre></div>';
-      drawErd($('#erdbig'));
-      return;
-    }
-
-    viewing = { name: d.file ? d.file.split('/').pop() : (id + '.file'), href: d.file || '', text: d.text || '' };
+    var d = (U.DOCS || {})[id] || FALLBACK_DOCS[id];
+    if (!d) { toast('Document not available'); return; }
     var body = $('#mb');
-    openModal(d.title || id);
+    freeBlob();
 
-    if (d.kind === 'pdf') {
-      body.innerHTML = '<iframe src="' + d.file + '" title="' + esc(d.title) + '"></iframe>';
+    var v = viewing = { name: d.file ? d.file.split('/').pop() : id, title: d.title || id, file: d.file || '', alt: d.alt, text: d.text || '' };
+    openModal(v.title);
+    if (!body) return;
+    body.innerHTML = '';
+
+    if (d.kind === 'erd' || id === 'erd') {
+      // the rendered diagram is the fallback download if the .svg file is missing
+      v.text = function () {
+        var svg = $('#mb svg');
+        return svg ? '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(svg) : '';
+      };
+      showErd(body, v);
     } else if (d.kind === 'office') {
-      body.innerHTML = outline();
-    } else if (d.kind === 'sql' && d.text && d.text !== '/* uswag_db.sql */') {
-      body.innerHTML = numbered(d.text);
+      body.innerHTML = outline(id);
+    } else if (d.kind === 'pdf') {
+      showFile(body, v, 'iframe');
+    } else if (v.text) {
+      body.innerHTML = numbered(v.text);
     } else if (d.file) {
-      body.innerHTML = '<iframe src="' + d.file + '" title="' + esc(d.title) + '"></iframe>';
+      // text file that is not embedded: read it, then number the lines
+      fetchFile(v).then(function (b) {
+        if (viewing !== v) return;
+        if (!b) { if (location.protocol === 'file:') showFile(body, v, 'iframe'); else missing(body, v.name); return; }
+        v.blob = typed(b, v.name);
+        b.text().then(function (t) { if (viewing === v) body.innerHTML = numbered(t); });
+      });
     } else {
-      body.innerHTML = outline();
+      body.innerHTML = outline(id);
     }
   };
 
@@ -436,17 +557,25 @@
   var mdl = $('#mdl');
   if (mdl) mdl.onclick = function () {
     if (!viewing) return;
-    if (viewing.href) {
-      var a = document.createElement('a');
-      a.href = viewing.href;
-      a.download = viewing.name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } else if (viewing.text) {
-      saveText(viewing.name, viewing.text);
-    }
-    toast('Download started for ' + viewing.name);
+    var v = viewing;
+    var started = function () { toast('Download started for ' + v.name); };
+    if (v.blob) { saveBlob(v.name, v.blob); started(); return; }
+    fetchFile(v).then(function (b) {
+      var text = typeof v.text === 'function' ? v.text() : v.text;
+      if (b) { saveBlob(v.name, typed(b, v.name)); started(); }
+      else if (text) { saveBlob(v.name, new Blob([text], { type: MIME[extOf(v.name)] || 'text/plain;charset=utf-8' })); started(); }
+      else if (v.file && location.protocol === 'file:') {
+        var a = document.createElement('a');
+        a.href = v.file;
+        a.download = v.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        started();
+      } else {
+        toast('File not found: ' + v.name);
+      }
+    });
   };
 
   var mpr = $('#mpr');
@@ -457,7 +586,7 @@
         f.contentWindow.print();
         return;
       } catch (e) {
-        var printWin = window.open(viewing && viewing.href ? viewing.href : '', '_blank');
+        var printWin = window.open(blobUrl || (viewing && viewing.file) || '', '_blank');
         if (printWin) {
           printWin.print();
           return;
@@ -482,6 +611,6 @@
 
   window.addEventListener('afterprint', function () { document.body.classList.remove('print-modal'); });
 
-  $$('[data-doc]').forEach(function (b) { b.onclick = function () { openDoc(b.dataset.doc); }; });
+  $$('[data-doc]').forEach(function (b) { b.onclick = function () { openDoc(docIdFor(b)); }; });
   $$('[data-print]').forEach(function (b) { b.onclick = function () { window.print(); }; });
 })();
