@@ -486,3 +486,70 @@ body.present .slide::before { content: attr(data-no); position: absolute; right:
 body.present .pbar { display: flex; position: fixed; bottom: .6em; left: 50%; transform: translateX(-50%); gap: .4em; z-index: 60; opacity: .35; }
 body.present .pbar:hover { opacity: 1; }
 .pbar button { font: inherit; font-size: .9em; color: #fff; background: var(--pri); border: 0; border-radius: .4em; padding: .3em .8em; cursor: pointer; }
+
+/* =====================================================================================
+   Gallery sliders: ERD Entity Schemas (#etrk) and SQL Script (#trk). Responsive sizing only.
+   Scoped to .gal, #trk and #etrk, so no other part of the site is affected.
+   To make the cards bigger or smaller, change --gal-h below.
+   ===================================================================================== */
+.gal { --gal-h: clamp(24rem, 62vh, 40rem); }
+
+.gal .arr {
+  flex: 0 0 clamp(2.2rem, 5vw, 3.4rem);
+  font-size: clamp(1.1rem, 2.6vw, 1.4rem);
+  padding: 0;
+}
+
+/* One height for every card, so the slider never jumps while swiping */
+#trk .cell, #etrk .cell { min-width: 0; }
+#trk .sc, #etrk .sc {
+  height: var(--gal-h);
+  min-height: 0 !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* SQL Script slider: the code preview fills the card and its text scales with the screen */
+#trk .sc pre {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  font-size: clamp(.62rem, 1.25vw + .3rem, .8rem);
+}
+
+/* ERD slider: the diagram is shrunk to fit inside the card instead of being cut off */
+#etrk .erdbox {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  padding: .6em !important;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#etrk .erdbox pre.mermaid {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#etrk .erdbox pre.mermaid svg { max-height: 100%; }
+
+/* ERD cards open the full ERD code, so the hint says ERD instead of SQL */
+#etrk .sc::after { content: "Click to read the full ERD"; }
+
+@media (max-width: 900px) {
+  .gal { --gal-h: clamp(22rem, 52vh, 32rem); }
+}
+
+@media (max-width: 700px) {
+  /* narrow screens: wrap long SQL lines so more of the code shows in the preview */
+  #trk .sc pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+}
+
+@media (max-width: 520px) {
+  .gal { --gal-h: 24rem; gap: .35em; }
+}

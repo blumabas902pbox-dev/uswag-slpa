@@ -153,15 +153,20 @@
       return '<div class="cell"><div class="sc" data-ei="' + i + '" style="min-height: 380px;"><h3>' + esc(x.n) + ' Entity</h3><div class="erdbox" style="margin-top:0.5em; padding:1em; min-height: 300px; display:flex; align-items:center; justify-content:center;"><pre class="mermaid" id="e_mermaid_' + i + '">' + esc(x.def) + '</pre></div></div></div>';
     }).join('');
 
+    // Draw one diagram at a time, after the main ERD. Mermaid names each drawing from the clock, so drawings
+    // started together can share a name and get painted over each other.
+    var drawn = Promise.resolve(erdReady);
     ENTITIES.forEach(function (_, i) {
-      var n = $('#e_mermaid_' + i);
-      if (n) drawErd(n);
+      drawn = drawn.then(function () {
+        var n = $('#e_mermaid_' + i);
+        return n ? drawErd(n) : null;
+      });
     });
 
     $$('#etrk .sc').forEach(function (c) {
       c.onclick = function () {
-        var ent = ENTITIES[c.dataset.ei];
-        openText(ent.n + ' (Entity ERD)', ent.def);
+        // opens the full ERD code (all entities and relationships), not just the one card
+        openText('ERD Crow’s Foot Notation (Mermaid code)', U.ERD || ENTITIES[c.dataset.ei].def);
       };
     });
 
