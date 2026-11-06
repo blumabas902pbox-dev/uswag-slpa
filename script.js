@@ -248,7 +248,7 @@
 
   var pbar = document.createElement('div');
   pbar.className = 'pbar';
-  pbar.innerHTML = '<button id="pprev" aria-label="Previous slide">\u2039</button><button id="pcount" disabled>1</button><button id="pnext" aria-label="Next slide">\u203A</button><button id="pexit">Exit</button>';
+  pbar.innerHTML = '<button id="pprev" aria-label="Previous slide">&#2039;</button><button id="pcount" disabled>1</button><button id="pnext" aria-label="Next slide">&#203A;</button><button id="pexit">Exit</button>';
   document.body.appendChild(pbar);
   $('#pprev').onclick = function () { go(-1); };
   $('#pnext').onclick = function () { go(1); };
@@ -386,6 +386,22 @@
 
   window.openDoc = function (id) {
     var d = (U.DOCS || {})[id];
+
+    // Fallback document mappings matching phase5-deliverables.html data-doc attributes
+    var fallbackDocs = {
+      'erd': { title: 'ERD (Crow’s Foot)', file: '../diagrams/uswag_erd_crowsfoot.svg', kind: 'image' },
+      'rules': { title: 'Business Rules', file: '../documents/USWAG_Business_Rules.pdf', kind: 'pdf' },
+      'norm': { title: 'Normalization Proofs', file: '../documents/USWAG_Normalization_Proofs.pdf', kind: 'pdf' },
+      'perf': { title: 'Performance Report', file: '../documents/USWAG_Performance_Report.pdf', kind: 'pdf' },
+      'sql': { title: 'uswag_db.sql', file: '../database/uswag_db.sql', kind: 'sql', text: U.SQL || '/* uswag_db.sql */' },
+      'docx': { title: 'Proposal (Word)', file: '../presentation/USWAG_Project_Proposal.docx', kind: 'office' },
+      'pdf': { title: 'Proposal (PDF)', file: '../presentation/USWAG_Project_Proposal.pdf', kind: 'pdf' },
+      'pptx': { title: 'Slides (Plain)', file: '../presentation/USWAG_Slides_Plain.pptx', kind: 'office' }
+    };
+
+    if (!d) {
+      d = fallbackDocs[id];
+    }
     if (!d && id !== 'erd') return;
     
     if (id === 'erd') {
@@ -397,15 +413,20 @@
       return;
     }
 
-    viewing = { name: d.file.split('/').pop(), href: d.file, text: d.text };
+    viewing = { name: d.file ? d.file.split('/').pop() : (id + '.file'), href: d.file || '', text: d.text || '' };
     var body = $('#mb');
-    openModal(d.title);
+    openModal(d.title || id);
+
     if (d.kind === 'pdf') {
       body.innerHTML = '<iframe src="' + d.file + '" title="' + esc(d.title) + '"></iframe>';
     } else if (d.kind === 'office') {
       body.innerHTML = outline();
-    } else {
+    } else if (d.kind === 'sql' && d.text && d.text !== '/* uswag_db.sql */') {
       body.innerHTML = numbered(d.text);
+    } else if (d.file) {
+      body.innerHTML = '<iframe src="' + d.file + '" title="' + esc(d.title) + '"></iframe>';
+    } else {
+      body.innerHTML = outline();
     }
   };
 
@@ -422,7 +443,7 @@
       document.body.appendChild(a);
       a.click();
       a.remove();
-    } else {
+    } else if (viewing.text) {
       saveText(viewing.name, viewing.text);
     }
     toast('Download started for ' + viewing.name);
